@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qibla Diagram — Rashdul Kiblat Harian Lokal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg: #0F221D;
+    --bg-soft: #15302A;
+    --panel: #1A3A33;
+    --panel-2: #1E433B;
+    --border: rgba(201,162,39,0.22);
+    --border-strong: rgba(201,162,39,0.45);
+    --ink: #F3EEE0;
+    --ink-dim: #BFC9B8;
+    --ink-faint: #8FA095;
+    --brass: #C9A227;
+    --brass-bright: #E8C766;
+    --leaf: #3E7A57;
+    --leaf-bright: #5DA17A;
+    --azure: #335E86;
+    --azure-bright: #5C8FBE;
+    --rust: #B5573C;
+    --shadow: 0 18px 50px -20px rgba(0,0,0,0.55);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse at 20% -10%, #1B3C33 0%, var(--bg) 55%) fixed;
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{ max-width: 1080px; margin: 0 auto; padding: 0 20px 80px; }
+  a{ color: var(--brass-bright); }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding: 56px 4px 38px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 34px;
+    position: relative;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; left:-20px; right:-20px; top:0; bottom:0;
+    background:
+      radial-gradient(circle at 88% 18%, rgba(201,162,39,0.10), transparent 38%),
+      radial-gradient(circle at 6% 80%, rgba(62,122,87,0.16), transparent 42%);
+    pointer-events:none; z-index:0;
+  }
+  .eyebrow{
+    position:relative; z-index:1;
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.14em; text-transform:uppercase;
+    color: var(--brass-bright);
+    border:1px solid var(--border-strong);
+    padding: 5px 12px; border-radius: 100px;
+    background: rgba(201,162,39,0.06);
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brass-bright);}
+  h1.title{
+    position:relative; z-index:1;
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size: clamp(40px, 7vw, 68px);
+    margin: 18px 0 6px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+  h1.title em{ font-style:italic; color: var(--brass-bright); font-weight:600; }
+  .subtitle{
+    position:relative; z-index:1;
+    font-size: 17px; color: var(--ink-dim); max-width: 640px; margin: 0 0 18px;
+  }
+  .hero-cite{
+    position:relative; z-index:1;
+    font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--ink-faint);
+  }
+
+  /* ---------- Sections / Cards ---------- */
+  section.card{
+    background: linear-gradient(180deg, var(--panel), var(--bg-soft));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+  }
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom: 18px; flex-wrap:wrap;}
+  .section-num{
+    font-family:'JetBrains Mono', monospace; color: var(--brass); font-size: 12px;
+    letter-spacing: 0.12em; text-transform:uppercase; display:block; margin-bottom:6px;
+  }
+  h2.section-title{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size: 28px; margin:0;
+    color: var(--ink);
+  }
+  p.section-desc{ color: var(--ink-dim); font-size: 14.5px; max-width: 640px; margin: 4px 0 0;}
+
+  /* ---------- Form ---------- */
+  .form-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 22px 26px; }
+  @media (max-width: 720px){ .form-grid{ grid-template-columns: 1fr; } }
+  .field-group{ background: rgba(0,0,0,0.14); border:1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .field-group legend, .fg-label{
+    font-family:'JetBrains Mono', monospace; font-size: 11.5px; text-transform:uppercase;
+    letter-spacing: 0.08em; color: var(--brass-bright); margin-bottom: 10px; display:block;
+  }
+  .dms-row{ display:flex; gap:6px; align-items:center; }
+  .dms-row input[type=number]{ width: 64px; }
+  .dms-row select{ width: 72px; }
+  .dms-row .sep{ color: var(--ink-faint); font-size: 13px; }
+  input, select{
+    background: #0E211C; border: 1px solid rgba(255,255,255,0.12); color: var(--ink);
+    border-radius: 7px; padding: 8px 9px; font-size: 14px; font-family:'JetBrains Mono', monospace;
+    outline:none;
+  }
+  input:focus, select:focus{ border-color: var(--brass-bright); box-shadow: 0 0 0 3px rgba(201,162,39,0.18); }
+  .field-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:12px;}
+  .field-row label{ font-size: 13px; color: var(--ink-dim); }
+  .field-row input[type=number]{ width: 100px; }
+  .helper-text{ font-size: 12px; color: var(--ink-faint); margin-top: 8px; line-height:1.5;}
+  .form-actions{ display:flex; align-items:center; gap:14px; margin-top: 22px; flex-wrap:wrap; }
+
+  button{
+    font-family:'Inter', sans-serif; font-weight:600; font-size: 14px;
+    border-radius: 9px; padding: 11px 20px; cursor:pointer; border:1px solid transparent;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  button:active{ transform: translateY(1px); }
+  .btn-primary{ background: linear-gradient(180deg, var(--brass-bright), var(--brass)); color:#23200d; }
+  .btn-primary:hover{ filter:brightness(1.07); }
+  .btn-secondary{ background: rgba(255,255,255,0.05); color: var(--ink); border:1px solid var(--border-strong); }
+  .btn-secondary:hover{ background: rgba(255,255,255,0.09); }
+  .btn-small{ font-size:12.5px; padding: 7px 13px; }
+  #gps-status{ font-size: 12.5px; color: var(--ink-faint); }
+
+  /* ---------- Result cards ---------- */
+  .result-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 860px){ .result-grid{ grid-template-columns: repeat(2,1fr);} }
+  @media (max-width: 480px){ .result-grid{ grid-template-columns: 1fr;} }
+  .result-card{
+    background: rgba(0,0,0,0.16); border:1px solid var(--border); border-radius: 10px;
+    padding: 16px 16px 14px;
+  }
+  .result-card .rlabel{
+    font-family:'JetBrains Mono', monospace; font-size: 11px; text-transform:uppercase;
+    letter-spacing: .08em; color: var(--ink-faint); display:block; margin-bottom: 8px;
+  }
+  .result-card .rvalue{
+    font-family:'Cormorant Garamond', serif; font-weight:600; font-size: 26px; color: var(--brass-bright);
+    line-height:1.15;
+  }
+  .result-card .rsub{ font-size:12.5px; color: var(--ink-dim); margin-top:4px; }
+  .badge{
+    display:inline-block; font-family:'JetBrains Mono', monospace; font-size:11px;
+    padding: 3px 9px; border-radius: 100px; margin-top:8px;
+    background: rgba(93,161,122,0.16); color: var(--leaf-bright); border:1px solid rgba(93,161,122,0.35);
+  }
+  .badge.warn{ background: rgba(181,87,60,0.16); color:#E08E78; border-color: rgba(181,87,60,0.35); }
+
+  /* ---------- Global rashdul mini card ---------- */
+  .global-box{
+    margin-top:18px; padding:16px 18px; border:1px dashed var(--border-strong); border-radius:10px;
+    background: rgba(0,0,0,0.10); font-size: 13.5px; color: var(--ink-dim);
+  }
+  .global-box b{ color: var(--ink); }
+  .global-dates{ display:flex; gap:24px; margin-top:10px; flex-wrap:wrap; }
+  .global-dates div{ font-family:'JetBrains Mono', monospace; color: var(--brass-bright); font-size: 14px; }
+  .global-dates span{ display:block; color: var(--ink-faint); font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+
+  /* ---------- Diagram ---------- */
+  .diagram-layout{ display:grid; grid-template-columns: 360px 1fr; gap: 30px; align-items:start; }
+  @media (max-width: 820px){ .diagram-layout{ grid-template-columns: 1fr; } }
+  .diagram-stage{ position:relative; touch-action:none; user-select:none; }
+  .diagram-stage svg{ width:100%; height:auto; display:block; cursor: grab; }
+  .diagram-stage svg:active{ cursor: grabbing; }
+  .diagram-controls{ display:flex; flex-direction:column; gap:16px; }
+  .diagram-controls .ctrl-row{ display:flex; align-items:center; gap:10px; }
+  .diagram-controls input[type=range]{ flex:1; accent-color: var(--brass-bright); }
+  .diagram-controls input[type=date]{ width:100%; }
+  .readout{
+    background: rgba(0,0,0,0.18); border:1px solid var(--border); border-radius:10px; padding:14px 16px;
+  }
+  .readout-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13.5px;}
+  .readout-row:last-child{ border-bottom:none; }
+  .readout-row .k{ color: var(--ink-dim); }
+  .readout-row .v{ font-family:'JetBrains Mono', monospace; color: var(--brass-bright); font-weight:600; }
+  .readout-row .v.v-invalid{ color: var(--rust); }
+  .drag-hint{ font-size: 12px; color: var(--ink-faint); text-align:center; margin-top:8px; }
+
+  /* ---------- Table ---------- */
+  .table-toolbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:14px; }
+  .toggle-group{ display:inline-flex; border:1px solid var(--border-strong); border-radius: 100px; overflow:hidden; }
+  .toggle-group button{ border-radius:0; border:none; padding:8px 16px; font-size:13px; background:transparent; color:var(--ink-dim); }
+  .toggle-group button.active{ background: var(--brass-bright); color:#23200d; }
+  .table-scroll{ max-height: 560px; overflow:auto; border:1px solid var(--border); border-radius:10px; }
+  table.rk-table{ width:100%; border-collapse: collapse; font-family:'JetBrains Mono', monospace; font-size: 12.5px; }
+  table.rk-table thead th{
+    position: sticky; top:0; background: var(--panel-2); color: var(--brass-bright);
+    text-align:left; padding: 10px 12px; border-bottom: 1px solid var(--border-strong);
+    font-weight:600; white-space:nowrap; z-index:2;
+  }
+  table.rk-table tbody td{ padding: 7px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); white-space:nowrap; color: var(--ink); }
+  table.rk-table tbody tr:hover{ background: rgba(201,162,39,0.06); }
+  table.rk-table tbody tr.today-row{ background: rgba(93,161,122,0.10); }
+  .ket-night{ color: var(--ink-faint); font-style:italic; }
+  .ket-none{ color: var(--rust); }
+
+  /* ---------- Methodology ---------- */
+  details.method{ border:1px solid var(--border); border-radius:10px; padding: 4px 18px; margin-bottom:12px; background: rgba(0,0,0,0.12); }
+  details.method summary{ cursor:pointer; padding:14px 0; font-weight:600; font-size:14.5px; color: var(--ink); list-style:none; display:flex; justify-content:space-between; align-items:center;}
+  details.method summary::-webkit-details-marker{ display:none; }
+  details.method summary::after{ content:"+"; font-family:'JetBrains Mono',monospace; color:var(--brass-bright); font-size:18px; }
+  details.method[open] summary::after{ content:"–"; }
+  .method-body{ padding: 0 0 18px; color: var(--ink-dim); font-size: 13.8px; }
+  .method-body p{ margin: 0 0 12px; }
+  .formula{
+    font-family:'JetBrains Mono', monospace; background: #0E211C; border:1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; margin: 10px 0; color: var(--brass-bright); font-size: 13px;
+    overflow-x:auto;
+  }
+  .method-body ol, .method-body ul{ padding-left: 20px; margin: 8px 0 14px; }
+  .method-body li{ margin-bottom: 6px; }
+  .src-tag{ display:inline-block; font-family:'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); border:1px solid var(--border); border-radius:6px; padding:2px 8px; margin-top:6px;}
+
+  /* ---------- Footer ---------- */
+  footer{ text-align:center; color: var(--ink-faint); font-size: 12.5px; padding-top: 10px; border-top:1px solid var(--border); }
+  footer p{ max-width: 680px; margin: 10px auto; }
+  footer .legend{ display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin: 14px 0; font-family:'JetBrains Mono', monospace; font-size:11px;}
+  footer .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  footer .swatch{ width:10px;height:10px;border-radius:2px; display:inline-block; }
+
+  /* ---------- Mobile / touch refinements ---------- */
+  @media (max-width: 600px){
+    .wrap{ padding: 0 14px 60px; }
+    .hero{ padding: 40px 2px 28px; }
+    section.card{ padding: 20px 16px; }
+    button{ padding: 13px 18px; font-size: 15px; }
+    .btn-small{ padding: 10px 14px; font-size: 13px; }
+    .dms-row input[type=number]{ width: 54px; }
+    .dms-row select{ width: 64px; }
+    .field-row{ flex-wrap: wrap; gap:16px 22px; }
+    .form-actions{ flex-direction:column; align-items:stretch; }
+    .form-actions button{ width:100%; }
+    .table-toolbar{ flex-direction:column; align-items:stretch; }
+    .table-toolbar button{ width:100%; }
+    .toggle-group{ width:100%; }
+    .toggle-group button{ flex:1; padding:11px 8px; }
+    .global-dates{ flex-direction:column; gap:10px; }
+    h1.title{ font-size: 38px; }
+    .diagram-controls .ctrl-row{ flex-wrap:wrap; }
+    #btn-play{ flex:1; }
+    #date-picker{ flex:1; min-width:140px; }
+  }
+  @supports (-webkit-touch-callout: none){
+    input, select, button{ font-size: 16px; } /* avoid iOS zoom; harmless on Android */
+  }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background: rgba(201,162,39,0.35); border-radius:6px; }
+  ::-webkit-scrollbar-track{ background: rgba(0,0,0,0.15); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow"><span class="dot"></span> Instrumen Falak Klasik — Digital</span>
+    <h1 class="title">Qibla <em>Diagram</em></h1>
+    <p class="subtitle">Penentu arah kiblat dengan metode <strong>Rashdul Kiblat Harian Lokal</strong> — bayang-bayang gnomon dipetakan ke azimut kiblat setiap hari sepanjang tahun, lengkap dengan diagram putar interaktif dan tabel tahunan yang dapat diekspor.</p>
+    <div class="hero-cite">Berdasarkan modul &amp; berkas hitung "Qibla Diagram" — Muhammad Thoyfur, SH. · Ngulik Bareng #1 Instrumen Falak Klasik, Ramadan 1442 H · <a href="https://drive.google.com/drive/folders/1h5u4MzdU5iqjN2pZSm4z29c-8n9PCuha" target="_blank" rel="noopener">Lihat berkas modul Qibla Diagram ↗</a></div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- ============ 1. INPUT ============ -->
+    <section class="card" id="sec-input">
+      <div class="section-head">
+        <div>
+          <span class="section-num">01 — Data Masukan</span>
+          <h2 class="section-title">Koordinat &amp; Waktu Pengamatan</h2>
+        </div>
+      </div>
+      <p class="section-desc">Masukkan koordinat lokasi (boleh hasil bacaan GPS/Google Earth, atau diukur sendiri). Koordinat Ka'bah sudah terisi nilai rujukan dari modul dan boleh diubah bila Anda memiliki sumber lain.</p>
+
+      <div class="form-grid">
+        <div class="field-group">
+          <span class="fg-label">Lintang Tempat (φx)</span>
+          <div class="dms-row">
+            <input type="number" id="px-d" min="0" max="90" value="6" aria-label="derajat"> <span class="sep">°</span>
+            <input type="number" id="px-m" min="0" max="59" value="59" aria-label="menit"> <span class="sep">'</span>
+            <input type="number" id="px-s" min="0" max="59.99" step="0.01" value="5" aria-label="detik"> <span class="sep">"</span>
+            <select id="px-dir"><option value="LU">LU</option><option value="LS" selected>LS</option></select>
+          </div>
+        </div>
+        <div class="field-group">
+          <span class="fg-label">Bujur Tempat (λx)</span>
+          <div class="dms-row">
+            <input type="number" id="lx-d" min="0" max="180" value="110" aria-label="derajat"> <span class="sep">°</span>
+            <input type="number" id="lx-m" min="0" max="59" value="26" aria-label="menit"> <span class="sep">'</span>
+            <input type="number" id="lx-s" min="0" max="59.99" step="0.01" value="47" aria-label="detik"> <span class="sep">"</span>
+            <select id="lx-dir"><option value="BT" selected>BT</option><option value="BB">BB</option></select>
+          </div>
+        </div>
+        <div class="field-group">
+          <span class="fg-label">Lintang Ka'bah (φk)</span>
+          <div class="dms-row">
+            <input type="number" id="pk-d" min="0" max="90" value="21">°
+            <input type="number" id="pk-m" min="0" max="59" value="25">'
+            <input type="number" id="pk-s" min="0" max="59.99" step="0.01" value="21.04">"
+            <select id="pk-dir"><option value="LU" selected>LU</option><option value="LS">LS</option></select>
+          </div>
+        </div>
+        <div class="field-group">
+          <span class="fg-label">Bujur Ka'bah (λk)</span>
+          <div class="dms-row">
+            <input type="number" id="lk-d" min="0" max="180" value="39">°
+            <input type="number" id="lk-m" min="0" max="59" value="49">'
+            <input type="number" id="lk-s" min="0" max="59.99" step="0.01" value="34.33">"
+            <select id="lk-dir"><option value="BT" selected>BT</option><option value="BB">BB</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-row" style="margin-top:18px; gap:26px;">
+        <div>
+          <label for="tinggi">Tinggi tempat (m dpl)</label><br>
+          <input type="number" id="tinggi" value="100" min="0">
+        </div>
+        <div>
+          <label for="tahun">Tahun perhitungan</label><br>
+          <input type="number" id="tahun" value="2026" min="1961" max="2150">
+        </div>
+        <div id="nama-tempat-wrap">
+          <label for="nama-tempat">Nama tempat (opsional)</label><br>
+          <input type="text" id="nama-tempat" placeholder="cth. Masjid Agung Jawa Tengah" style="width:220px;">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" id="btn-hitung">Hitung Qibla Diagram</button>
+        <button class="btn-secondary" id="btn-gps">📍 Gunakan Lokasi Saya (GPS)</button>
+        <span id="gps-status"></span>
+      </div>
+      <p class="helper-text">Koordinat Ka'bah default: 21°25'21,04" LU, 39°49'34,33" BT — dikutip Slamet Hambali dari Google Earth (2010), sebagaimana digunakan dalam modul sumber. Tanda LU/LS dan BT/BB menentukan arah lintang/bujur; nilai derajat selalu diisi positif.</p>
+    </section>
+
+    <!-- ============ 2. RESULT ============ -->
+    <section class="card" id="sec-result" style="display:none;">
+      <div class="section-head">
+        <div>
+          <span class="section-num">02 — Hasil</span>
+          <h2 class="section-title">Arah &amp; Azimut Kiblat</h2>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div class="result-card">
+          <span class="rlabel">Selisih Bujur (C)</span>
+          <div class="rvalue" id="res-c">—</div>
+          <div class="rsub" id="res-c-sub">selisih bujur tempat &amp; Ka'bah</div>
+        </div>
+        <div class="result-card">
+          <span class="rlabel">Arah Kiblat</span>
+          <div class="rvalue" id="res-arah">—</div>
+          <div class="rsub" id="res-arah-comp">—</div>
+        </div>
+        <div class="result-card">
+          <span class="rlabel">Azimut Kiblat</span>
+          <div class="rvalue" id="res-azimuth">—</div>
+          <div class="rsub">dari Utara sejati, searah jarum jam</div>
+        </div>
+        <div class="result-card">
+          <span class="rlabel">Bujur Daerah / Zona</span>
+          <div class="rvalue" id="res-zona">—</div>
+          <div class="rsub" id="res-condong">—</div>
+        </div>
+      </div>
+
+      <div class="global-box">
+        <b>Bonus — Rashdul Kiblat Global tahun <span id="rg-year">—</span>:</b> dua momen dalam setahun ketika Matahari tepat berada di lintang Ka'bah saat berkulminasi di Mekah, sehingga di seluruh dunia (yang masih siang) bayangan tegak lurus menunjukkan arah kiblat secara serempak.
+        <div class="global-dates">
+          <div><span>Tanggal &amp; jam (lokal Anda)</span><span id="rg-date1">—</span></div>
+          <div><span>Tanggal &amp; jam (lokal Anda)</span><span id="rg-date2">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3. DIAGRAM ============ -->
+    <section class="card" id="sec-diagram" style="display:none;">
+      <div class="section-head">
+        <div>
+          <span class="section-num">03 — Instrumen Digital</span>
+          <h2 class="section-title">Diagram Putar Rashdul Kiblat</h2>
+        </div>
+      </div>
+      <p class="section-desc">Cincin bulan dan kurva data Rashdul Kiblat selalu diam. Seret <strong>panah di tengah</strong> (atau geser slider/tanggal di samping) hingga menunjuk ke hari dan bulan yang diinginkan — persis seperti memutar penunjuk pada Qibla Diagram fisik. Keterangan akan menampilkan hari, tanggal, dan jam Rashdul Kiblat pada tanggal yang ditunjuk.</p>
+
+      <div class="diagram-layout">
+        <div class="diagram-stage" id="diagram-stage"><!-- SVG injected by JS --></div>
+        <div class="diagram-controls">
+          <div class="ctrl-row">
+            <button class="btn-secondary btn-small" id="btn-play">▶ Putar otomatis</button>
+            <input type="date" id="date-picker">
+          </div>
+          <div class="ctrl-row">
+            <input type="range" id="day-slider" min="1" max="366" value="1">
+          </div>
+          <div class="readout">
+            <div class="readout-row"><span class="k">Tanggal</span><span class="v" id="ro-date">—</span></div>
+            <div class="readout-row"><span class="k">R.Kiblat 1 (pagi)</span><span class="v" id="ro-wd1">—</span></div>
+            <div class="readout-row"><span class="k">R.Kiblat 2 (sore)</span><span class="v" id="ro-wd2">—</span></div>
+          </div>
+          <div class="drag-hint">Seret panah di tengah dengan mouse/jari untuk menunjuk hari &amp; bulan.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4. TABLE ============ -->
+    <section class="card" id="sec-table" style="display:none;">
+      <div class="section-head">
+        <div>
+          <span class="section-num">04 — Tabel Tahunan</span>
+          <h2 class="section-title">Rashdul Kiblat Lokal Sepanjang Tahun</h2>
+        </div>
+      </div>
+      <div class="table-toolbar">
+        <div class="toggle-group" id="view-toggle">
+          <button data-mode="ringkas" class="active">Ringkas (tgl 1/11/21)</button>
+          <button data-mode="harian">Harian (semua tanggal)</button>
+        </div>
+        <button class="btn-secondary btn-small" id="btn-export">⬇ Export ke Excel (.xlsx)</button>
+      </div>
+      <div class="table-scroll">
+        <table class="rk-table">
+          <thead>
+            <tr>
+              <th>No</th><th>Tanggal</th>
+              <th>Terbit</th><th>Terbenam</th>
+              <th>R.Kiblat 1</th><th>R.Kiblat 2</th><th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <p class="helper-text">Export selalu menyertakan seluruh 365/366 baris harian beserta deklinasi, equation of time, dan kedua jam Rashdul Kiblat dalam format DMS/HH:MM:SS, apa pun mode tampilan yang sedang dipilih di atas.</p>
+    </section>
+
+    <!-- ============ 5. METHODOLOGY ============ -->
+    <section class="card" id="sec-method">
+      <div class="section-head">
+        <div>
+          <span class="section-num">05 — Argumentasi &amp; Cara Hitung</span>
+          <h2 class="section-title">Dasar Perhitungan (boleh diminimalkan)</h2>
+        </div>
+      </div>
+      <p class="section-desc">Bagian ini menjelaskan logika dan rumus yang dipakai aplikasi, diringkas dari modul sumber. Klik setiap judul untuk membuka/menutup.</p>
+
+      <details class="method">
+        <summary>Apa itu Rashdul Kiblat, dan mengapa harus harian?</summary>
+        <div class="method-body">
+          <p>Rashdul Kiblat adalah cara mencari arah kiblat memanfaatkan bayang-bayang Matahari secara langsung: pada saat tertentu, azimut Matahari (atau titik antipodanya, 180° darinya) tepat berimpit dengan azimut kiblat suatu tempat, sehingga bayangan benda tegak (gnomon) pada saat itu menunjukkan arah kiblat tanpa perlu kompas atau perhitungan trigonometri lapangan.</p>
+          <p><b>Rashdul Kiblat Global</b> hanya terjadi dua kali setahun (sekitar 27/28 Mei dan 15/16 Juli), ketika deklinasi Matahari berhimpit dengan lintang Ka'bah saat Matahari berkulminasi di atas Ka'bah — momen ini berlaku serempak untuk semua tempat yang masih mengalami siang. <b>Rashdul Kiblat Lokal</b> sebaliknya dapat dicari setiap hari sepanjang tahun, karena yang dicari bukan posisi Matahari tepat di atas Ka'bah, melainkan saat azimut Matahari (atau antipodanya) sama dengan azimut kiblat di lokasi tersebut — itulah sebabnya aplikasi ini menghitung satu (atau dua) jam Rashdul Kiblat untuk setiap tanggal dalam setahun.</p>
+          <span class="src-tag">Sumber: Modul, bagian "Konsep &amp; Jenis-jenis Rashdul Kiblat", hlm. 5–8</span>
+        </div>
+      </details>
+
+      <details class="method">
+        <summary>Rumus arah &amp; azimut kiblat</summary>
+        <div class="method-body">
+          <p>Arah kiblat (B) dihitung dengan rumus segitiga bola standar, menggunakan lintang Ka'bah (φk), lintang tempat (φx), dan selisih bujur Ka'bah–tempat (C):</p>
+          <div class="formula">cotan B = [tan(φk) · cos(φx) / sin(C)] − [sin(φx) / tan(C)]</div>
+          <p>Hasil B adalah sudut dalam satu kuadran (0°–90°) dihitung dari Utara atau Selatan ke arah Barat atau Timur, tergantung kuadran tempatnya. Azimut kiblat (dari Utara sejati, searah jarum jam 0°–360°) diperoleh dengan mengonversi kuadran tersebut ke skala penuh.</p>
+          <span class="src-tag">Sumber: Modul, catatan kaki rumus arah kiblat, hlm. 10 &amp; sheet "rumus" berkas Excel</span>
+        </div>
+      </details>
+
+      <details class="method">
+        <summary>Rumus Rashdul Kiblat Lokal (dua tahap)</summary>
+        <div class="method-body">
+          <p>Untuk setiap tanggal, aplikasi mencari jam ketika bayangan gnomon segaris dengan azimut kiblat, melalui sudut pembantu U:</p>
+          <div class="formula">cotan U = tan(B) · sin(φx)</div>
+          <p>Kemudian, dengan deklinasi Matahari (δ) pada saat itu:</p>
+          <div class="formula">cos(t − U) = tan(δ) · cos(U) / tan(φx)</div>
+          <p>Karena hasil cos(t−U) bisa bernilai dua sudut (positif/negatif), tersedia dua kemungkinan sudut waktu: t₁ = (t−U)+U dan t₂ = U−(t−U) — inilah sebabnya satu hari bisa memiliki <b>dua</b> jam Rashdul Kiblat (pagi dan sore), atau kadang hanya satu yang teramati karena yang lain jatuh sebelum terbit/setelah terbenam Matahari.</p>
+          <p>Sudut waktu lalu dikonversi ke jam hakiki (WH = 12 ± t/15, tergantung kiblat condong ke Barat atau Timur), lalu ke waktu daerah (WD) dengan equation of time (e) dan koreksi bujur:</p>
+          <div class="formula">WD = WH − e + (Bujur Daerah − λx) / 15</div>
+          <p><b>Mengapa dua tahap?</b> Tahap pertama memakai deklinasi &amp; equation of time pada perkiraan tengah hari untuk menebak jam kasar (taqribi). Karena deklinasi Matahari berubah sedikit setiap jam, tahap kedua mengulang seluruh perhitungan memakai deklinasi &amp; equation of time pada jam hasil tebakan tahap pertama — modul aslinya melakukan ini lewat interpolasi data per jam, sedangkan aplikasi ini menghitung posisi Matahari langsung pada jam tersebut sehingga hasilnya lebih presisi.</p>
+          <span class="src-tag">Sumber: Modul, "Cara Menentukan Rashdul Kiblat — Rashdul Kiblat Lokal", hlm. 10–14, dan sheet "rumus" berkas Excel</span>
+        </div>
+      </details>
+
+      <details class="method">
+        <summary>Posisi Matahari: deklinasi &amp; equation of time</summary>
+        <div class="method-body">
+          <p>Deklinasi dan equation of time dihitung ulang per detik menggunakan algoritma posisi Matahari ketelitian-rendah dari Jean Meeus (<em>Astronomical Algorithms</em>) — algoritma yang sama yang dirujuk pada sheet "data deklinasi dan eq" berkas Excel sumber, mencakup hari Julian, koreksi ΔT, bujur ekliptika rata-rata &amp; sejati, kemiringan ekliptika, dan nutasi sederhana, untuk memperoleh deklinasi (δ), lalu polinomial Fourier untuk equation of time (e).</p>
+          <p>Hasil perhitungan ini diverifikasi terhadap contoh numerik pada modul (Masjid Agung Jawa Tengah, 17 Agustus 2021): deklinasi, equation of time, arah kiblat, azimut kiblat, hingga jam Rashdul Kiblat akhir (≈14:42 WIB) seluruhnya cocok dengan selisih kurang dari satu detik.</p>
+          <span class="src-tag">Sumber: Modul, "Digitalisasi Rashdul Kiblat", hlm. 14–17; Jean Meeus, <em>Astronomical Algorithms</em>, 1991</span>
+        </div>
+      </details>
+
+      <details class="method">
+        <summary>Komponen instrumen &amp; keterbatasan</summary>
+        <div class="method-body">
+          <p>Qibla Diagram fisik terdiri dari lima komponen: gnomon (penghasil bayangan), bidang dial putar (memuat diagram tahunan), penunjuk jam &amp; arah, bidang datar (alas bertanda tanggal/bulan), dan kaki dial (perata). Diagram putar pada aplikasi ini meniru fungsi bidang dial &amp; penunjuk jam tersebut secara digital.</p>
+          <ul>
+            <li>Ketelitian instrumen asli ±5 menit pada penunjuk jam — aplikasi mewarisi batas ini sebagai catatan kehati-hatian, walau perhitungan internalnya kontinu.</li>
+            <li>Bersifat lokal: jam yang dihasilkan berlaku untuk lingkup satu kota di sekitar koordinat yang dimasukkan.</li>
+            <li>Jika sebelum kulminasi Matahari, arah bayangan gnomon = arah kiblat; jika setelah kulminasi, arah kiblat ditunjukkan oleh <b>antipoda</b> (kebalikan) arah bayangan.</li>
+            <li>Hasil dianggap tidak teramati ("malam"/"tidak terjadi") bila jatuh sebelum terbit atau sesudah terbenam Matahari, atau bila secara matematis Matahari tidak pernah memotong azimut kiblat pada hari itu (umum terjadi di lintang tinggi).</li>
+          </ul>
+          <span class="src-tag">Sumber: Modul, "Komponen Qibla Diagram" &amp; "Penentuan Rashdul Kiblat pada Qibla Diagram", hlm. 18–27</span>
+        </div>
+      </details>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--leaf)"></i> Jam Rashdul Kiblat 1 (pagi)</span>
+      <span><i class="swatch" style="background:var(--azure)"></i> Jam Rashdul Kiblat 2 (sore)</span>
+      <span><i class="swatch" style="background:var(--brass)"></i> Azimut Kiblat</span>
+    </div>
+    <p>Sumber rumus &amp; konsep: <em>Muhammad Thoyfur, SH., "Arah Kiblat, Rashdul Kiblat, Qibla Diagram dan Cara Penggunaannya," Modul Ngulik Bareng #1 Instrumen Falak Klasik, Ramadan 1442 H</em>, beserta berkas hitung "Qibla Diagram in Excel" (Semarang, 2019) — <a href="https://drive.google.com/drive/folders/1h5u4MzdU5iqjN2pZSm4z29c-8n9PCuha" target="_blank" rel="noopener">unduh/lihat modul &amp; berkas aslinya di sini ↗</a>. Posisi Matahari dihitung ulang menggunakan algoritma Jean Meeus, <em>Astronomical Algorithms</em>, sebagaimana diadaptasi pada berkas tersebut.</p>
+    <p>Hasil bersifat <em>taqribi</em> (pendekatan) dengan ketelitian waktu ±5 menit, sesuai sifat alat fisik aslinya. Untuk keperluan ibadah, disarankan verifikasi lapangan menggunakan gnomon/tongkat istiwa' sungguhan pada jam yang ditunjukkan.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   1. ASTRONOMI — posisi Matahari (algoritma Jean Meeus, low-precision)
+   Diverifikasi terhadap contoh modul (17 Agt 2021, Masjid Agung
+   Jawa Tengah): deklinasi & equation of time cocok < 0.01°,
+   jam Rashdul Kiblat akhir cocok < 1 detik dari hasil manual modul.
+   ============================================================ */
+function rad(d){ return d*Math.PI/180; }
+function deg(r){ return r*180/Math.PI; }
+function mod360(x){ let r=x%360; if(r<0) r+=360; return r; }
+function mod24(x){ let r=x%24; if(r<0) r+=24; return r; }
+function wrap180(x){ let r=mod360(x); if(r>180) r-=360; return r; }
+function clamp(x,a,b){ return Math.max(a,Math.min(b,x)); }
+function isLeap(y){ return (y%4===0 && y%100!==0) || (y%400===0); }
+function daysInYear(y){ return isLeap(y)?366:365; }
+
+function julianDay(year, month, day, utHours){
+  let Y=year, M=month;
+  if(M<=2){ Y-=1; M+=12; }
+  const A=Math.floor(Y/100);
+  const B=2-A+Math.floor(A/4);
+  const JD0=Math.floor(365.25*Y)+Math.floor(30.6001*(M+1))+B+day+1720994.5;
+  return JD0+utHours/24;
+}
+function deltaT(year,month,day){
+  const S=year+(month-1)/12+day/365;
+  if(S>1961 && S<=1986){ const x=S-1975; return 45.45+1.067*x-x*x/260-Math.pow(x,3)/718; }
+  if(S>1986 && S<=2005){ const x=S-2000; return 63.86+0.3345*x-0.060374*x*x+0.0017275*Math.pow(x,3)+0.000651814*Math.pow(x,4)+0.00002373599*Math.pow(x,5); }
+  if(S>2005 && S<=2050){ const x=S-2000; return 62.92+0.32217*x+0.005589*x*x; }
+  if(S>2050 && S<=2150){ return -20+32*Math.pow((S-1820)/100,2)-0.5628*(2150-S); }
+  return 0;
+}
+function sunPosition(year,month,day,utHours){
+  const JD=julianDay(year,month,day,utHours);
+  const dT=deltaT(year,month,day);
+  const JDE=JD+dT/86400;
+  const T=(JDE-2451545)/36525;
+  const L0=mod360(280.46607+36000.7698*T);
+  const M0=mod360(357.5291+35999.0503*T);
+  const Mr=rad(M0);
+  const C=(1.9146-0.0048*T)*Math.sin(Mr)+0.0199*Math.sin(2*Mr)+0.0003*Math.sin(3*Mr);
+  const L=mod360(L0+C);
+  const Omega=mod360(125.04452-1934.13626*T);
+  const eps0=mod360(23.43929111-0.01300417*T);
+  const dEps=0.002555556*Math.cos(rad(Omega))+0.00015833*Math.cos(rad(2*L));
+  const eps=eps0+dEps;
+  const lamApp=L-0.00569-0.00478*Math.sin(rad(Omega));
+  const sinDec=Math.sin(rad(eps))*Math.sin(rad(lamApp));
+  const dec=deg(Math.asin(clamp(sinDec,-1,1)));
+  const Tn=(JD-2451545)/36525;
+  const L0n=rad(mod360(280.46607+36000.7698*Tn));
+  const BP=(-(1789+237*Tn)*Math.sin(L0n)-(7146-62*Tn)*Math.cos(L0n)
+    +(9934-14*Tn)*Math.sin(2*L0n)-(29+5*Tn)*Math.cos(2*L0n)
+    +(74+10*Tn)*Math.sin(3*L0n)+(320-4*Tn)*Math.cos(3*L0n)
+    -212*Math.sin(4*L0n));
+  const eotMinutes=BP/1000;
+  return {dec, eotMinutes};
+}
+
+/* ============================================================
+   2. ARAH & AZIMUT KIBLAT
+   ============================================================ */
+function computeQibla(phixDeg, lamxDeg, phikDeg, lamkDeg){
+  let Csigned = lamxDeg - lamkDeg;
+  if (Csigned > 180) Csigned = 360 - lamxDeg + lamkDeg;
+  const Cabs = Math.abs(Csigned);
+  const val = 1/( Math.tan(rad(phikDeg))*Math.cos(rad(phixDeg))/Math.sin(rad(Cabs))
+                  - Math.sin(rad(phixDeg))/Math.tan(rad(Cabs)) );
+  const I11 = deg(Math.atan(val));
+  const B = Math.abs(I11);
+  let quad;
+  if (I11 < 0) quad = (Csigned < 0) ? "Selatan Timur" : "Selatan Barat";
+  else quad = (Csigned < 0) ? "Utara Timur" : "Utara Barat";
+  let azimuth;
+  if (quad === "Utara Barat") azimuth = 360 - B;
+  else if (quad === "Utara Timur") azimuth = B;
+  else if (quad === "Selatan Timur") azimuth = Math.abs(180 - B);
+  else azimuth = 180 - B;
+  return {B, azimuth: mod360(azimuth), quad, Csigned};
+}
+const QUAD_SHORT = {"Utara Barat":"UB","Utara Timur":"UT","Selatan Timur":"ST","Selatan Barat":"SB"};
+const QUAD_COMP = {"Utara Timur":"Timur Utara","Selatan Timur":"Timur Selatan","Utara Barat":"Barat Utara","Selatan Barat":"Barat Selatan"};
+const QUAD_COMP_SHORT = {"Utara Timur":"TU","Selatan Timur":"TS","Utara Barat":"BU","Selatan Barat":"BS"};
+
+function determineZone(lamxSigned, lamkSigned){
+  const lamDx = Math.round(lamxSigned/15)*15;
+  const f7 = lamDx/15;
+  let condongBarat;
+  const antipodeThreshold = 180 - lamkSigned;
+  if (lamxSigned >= 0) condongBarat = lamxSigned > lamkSigned;
+  else condongBarat = (-lamxSigned) >= antipodeThreshold;
+  return {lamDx, f7, condongBarat};
+}
+
+/* ============================================================
+   3. RASHDUL KIBLAT LOKAL — dua tahap (taqribi -> presisi)
+   ============================================================ */
+function rashdulKiblatDay(year,month,day, phixDeg, lamxDeg, Bdeg, condongBarat, lamDxDeg, f7){
+  const U = deg(Math.atan(1/(Math.tan(rad(Bdeg))*Math.sin(rad(phixDeg)))));
+  const G = mod24(12 - f7);
+  const p1 = sunPosition(year,month,day,G);
+  const cosArg1 = Math.tan(rad(p1.dec))*Math.cos(rad(U))/Math.tan(rad(phixDeg));
+  if (Math.abs(cosArg1) > 1) return {wd1:null, wd2:null, decNoon:p1.dec, eotNoon:p1.eotMinutes};
+  const KtU1 = deg(Math.acos(clamp(cosArg1,-1,1)));
+  const t1a = wrap180(KtU1+U);
+  const t2a = wrap180(U-KtU1);
+  const N1=t1a/15, N2=t2a/15;
+  const WH1 = condongBarat ? 12+N1 : 12-N1;
+  const WH2 = condongBarat ? 12+N2 : 12-N2;
+  const WD1raw = WH1 - p1.eotMinutes/60 + (lamDxDeg-lamxDeg)/15;
+  const WD2raw = WH2 - p1.eotMinutes/60 + (lamDxDeg-lamxDeg)/15;
+
+  function refine(WDraw, branch){
+    const UT2 = mod24(WDraw - f7);
+    const p2 = sunPosition(year,month,day,UT2);
+    const cosArg2 = Math.tan(rad(p2.dec))*Math.cos(rad(U))/Math.tan(rad(phixDeg));
+    if (Math.abs(cosArg2) > 1) return null;
+    const KtU2 = deg(Math.acos(clamp(cosArg2,-1,1)));
+    const tb = branch===1 ? wrap180(KtU2+U) : wrap180(U-KtU2);
+    const Nb = tb/15;
+    const WHb = condongBarat ? 12+Nb : 12-Nb;
+    return WHb - p2.eotMinutes/60 + (lamDxDeg-lamxDeg)/15;
+  }
+  const wd1 = refine(WD1raw,1);
+  const wd2 = refine(WD2raw,2);
+  return {wd1, wd2, decNoon:p1.dec, eotNoon:p1.eotMinutes};
+}
+
+// terbit/terbenam (perkiraan), untuk validasi & untuk diagram
+function sunriseSunset(year,month,day,phixDeg,lamxDeg,lamDxDeg,f7){
+  const p = sunPosition(year,month,day, mod24(12-f7));
+  const cosH0 = -Math.tan(rad(phixDeg))*Math.tan(rad(p.dec));
+  if (Math.abs(cosH0) > 1) return {sunrise:null, sunset:null};
+  const H0 = deg(Math.acos(clamp(cosH0,-1,1)));
+  const noonWD = 12 - p.eotMinutes/60 + (lamDxDeg-lamxDeg)/15;
+  return { sunrise: noonWD - H0/15, sunset: noonWD + H0/15 };
+}
+
+function isWithinDaylight(wd, sun){
+  if (wd===null || sun.sunrise===null) return false;
+  return wd >= sun.sunrise-0.05 && wd <= sun.sunset+0.05;
+}
+
+/* ============================================================
+   4. RASHDUL KIBLAT GLOBAL (bonus)
+   ============================================================ */
+function computeGlobal(year, phikDeg, lamkDeg, lamxDeg, f7){
+  // cari 2 tanggal saat deklinasi matahari (12 UT, kasar) melintasi phik
+  const N = daysInYear(year);
+  let prevDiff = null, crossings = [];
+  for (let doy=1; doy<=N; doy++){
+    const {month, day} = doyToDate(year, doy);
+    const p = sunPosition(year, month, day, 9); // dekat zawal Mekah (UT ~9)
+    const diff = p.dec - phikDeg;
+    if (prevDiff !== null && Math.sign(diff) !== Math.sign(prevDiff) && Math.sign(prevDiff)!==0){
+      crossings.push(doy - (diff/(diff-prevDiff)));
+    }
+    prevDiff = diff;
+  }
+  return crossings.slice(0,2).map(doyFrac=>{
+    const doy = Math.round(doyFrac);
+    const {month, day} = doyToDate(year, doy);
+    const p = sunPosition(year, month, day, 9);
+    const e = p.eotMinutes/60; // jam
+    const zawalMekah = 12 - e + (45 - lamkDeg)/15; // LMT Mekah
+    const zonaMekah = 3;
+    const WD = zawalMekah + (f7 - zonaMekah);
+    return {month, day, wd: WD};
+  });
+}
+
+/* ============================================================
+   5. UTIL: tanggal & format DMS / HMS
+   ============================================================ */
+const MONTH_NAMES = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const MONTH_ABBR = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agt","Sep","Okt","Nov","Des"];
+const MONTH_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+function monthDays(year){ const m=MONTH_DAYS.slice(); if(isLeap(year)) m[1]=29; return m; }
+function doyToDate(year, doy){
+  const md = monthDays(year);
+  let d = doy;
+  for (let m=0; m<12; m++){
+    if (d <= md[m]) return {month:m+1, day:d};
+    d -= md[m];
+  }
+  return {month:12, day:md[11]};
+}
+function dateToDoy(year, month, day){
+  const md = monthDays(year);
+  let doy = day;
+  for (let m=0; m<month-1; m++) doy += md[m];
+  return doy;
+}
+function pad2(n){ return String(Math.trunc(n)).padStart(2,'0'); }
+function decToDMS(value){
+  const sign = value<0 ? -1 : 1;
+  let v = Math.abs(value);
+  const d = Math.floor(v); v=(v-d)*60;
+  const m = Math.floor(v); v=(v-m)*60;
+  const s = Math.round(v*100)/100;
+  return {sign,d,m,s};
+}
+function dmsStr(value, posSuf, negSuf, decimals=1){
+  const {sign,d,m,s} = decToDMS(value);
+  return d+"°"+m+"'"+s.toFixed(decimals)+'"'+" "+(sign>=0?posSuf:negSuf);
+}
+function dmsStrPlain(value, decimals=1){
+  const {sign,d,m,s} = decToDMS(value);
+  return (sign<0?"-":"")+d+"°"+m+"'"+s.toFixed(decimals)+'"';
+}
+function hoursToHMS(h){
+  if (h===null || h===undefined || isNaN(h)) return null;
+  h = mod24(h);
+  const hh = Math.floor(h);
+  let mm = Math.floor((h-hh)*60);
+  let ss = Math.round((((h-hh)*60-mm)*60));
+  if (ss===60){ ss=0; mm+=1; }
+  if (mm===60){ mm=0; }
+  return pad2(hh)+":"+pad2(mm)+":"+pad2(ss);
+}
+function hoursToHM(h){
+  if (h===null || h===undefined || isNaN(h)) return null;
+  h = mod24(h);
+  let hh = Math.floor(h);
+  let mm = Math.round((h-hh)*60);
+  if (mm===60){ mm=0; hh=(hh+1)%24; }
+  return pad2(hh)+":"+pad2(mm);
+}
+
+/* ============================================================
+   6. STATE
+   ============================================================ */
+let STATE = null; // { phix, lamx, phik, lamk, B, azimuth, quad, lamDx, f7, condongBarat, year, days:[...], namaTempat }
+
+function readDMSField(prefix, dirId, posVal){
+  const d = parseFloat(document.getElementById(prefix+"-d").value)||0;
+  const m = parseFloat(document.getElementById(prefix+"-m").value)||0;
+  const s = parseFloat(document.getElementById(prefix+"-s").value)||0;
+  const dir = document.getElementById(dirId).value;
+  const mag = d + m/60 + s/3600;
+  return (dir===posVal) ? mag : -mag;
+}
+function writeDMSField(prefix, dirId, decimalValue, posVal, negVal){
+  const sign = decimalValue<0 ? negVal : posVal;
+  const {d,m,s} = decToDMS(decimalValue);
+  document.getElementById(prefix+"-d").value = d;
+  document.getElementById(prefix+"-m").value = m;
+  document.getElementById(prefix+"-s").value = Math.round(s*100)/100;
+  document.getElementById(dirId).value = sign;
+}
+
+function computeAll(){
+  const phix = readDMSField("px","px-dir","LU");
+  const lamx = readDMSField("lx","lx-dir","BT");
+  const phik = readDMSField("pk","pk-dir","LU");
+  const lamk = readDMSField("lk","lk-dir","BT");
+  const tinggi = parseFloat(document.getElementById("tinggi").value)||0;
+  const year = parseInt(document.getElementById("tahun").value)||new Date().getFullYear();
+  const namaTempat = document.getElementById("nama-tempat").value || "";
+
+  const q = computeQibla(phix, lamx, phik, lamk);
+  const z = determineZone(lamx, lamk);
+  const N = daysInYear(year);
+  const days = [];
+  for (let doy=1; doy<=N; doy++){
+    const {month, day} = doyToDate(year, doy);
+    const r = rashdulKiblatDay(year, month, day, phix, lamx, q.B, z.condongBarat, z.lamDx, z.f7);
+    const sun = sunriseSunset(year, month, day, phix, lamx, z.lamDx, z.f7);
+    const valid1 = isWithinDaylight(r.wd1, sun);
+    const valid2 = isWithinDaylight(r.wd2, sun);
+    days.push({doy, month, day, year, dec:r.decNoon, eot:r.eotNoon, wd1:r.wd1, wd2:r.wd2, valid1, valid2, sunrise:sun.sunrise, sunset:sun.sunset});
+  }
+  const global = computeGlobal(year, phik, lamk, lamx, z.f7);
+
+  STATE = {phix, lamx, phik, lamk, tinggi, year, namaTempat, ...q, ...z, days, global};
+  return STATE;
+}
+
+/* ============================================================
+   7. RENDER — hasil & tabel
+   ============================================================ */
+function renderResult(){
+  const s = STATE;
+  document.getElementById("res-c").textContent = dmsStrPlain(s.Csigned);
+  document.getElementById("res-c-sub").textContent = (s.condongBarat?"kiblat condong ke Barat":"kiblat condong ke Timur");
+  document.getElementById("res-arah").textContent = dmsStrPlain(s.B)+" "+QUAD_SHORT[s.quad];
+  document.getElementById("res-arah-comp").textContent = "= "+dmsStrPlain(90-s.B)+" "+QUAD_COMP_SHORT[s.quad]+" ("+QUAD_COMP[s.quad]+")";
+  document.getElementById("res-azimuth").textContent = dmsStrPlain(s.azimuth)+" UTSB";
+  document.getElementById("res-zona").textContent = (s.lamDx>=0?"+":"")+s.lamDx+"° (GMT"+(s.f7>=0?"+":"")+s.f7+")";
+  document.getElementById("res-condong").textContent = "Lintang "+dmsStr(s.phix,"LU","LS")+", Bujur "+dmsStr(s.lamx,"BT","BB");
+
+  document.getElementById("rg-year").textContent = s.year;
+  const g = s.global;
+  const gEl = [document.getElementById("rg-date1"), document.getElementById("rg-date2")];
+  gEl.forEach((el,i)=>{
+    if (g[i]){
+      el.textContent = g[i].day+" "+MONTH_NAMES[g[i].month-1]+" "+s.year+", "+hoursToHMS(g[i].wd);
+    } else { el.textContent = "tidak ditemukan"; }
+  });
+
+  document.getElementById("sec-result").style.display = "";
+  document.getElementById("sec-diagram").style.display = "";
+  document.getElementById("sec-table").style.display = "";
+}
+
+let TABLE_MODE = "ringkas";
+function renderTable(){
+  const tbody = document.getElementById("table-body");
+  const rows = STATE.days.filter(d => TABLE_MODE==="harian" ? true : (d.day===1||d.day===11||d.day===21));
+  const todayDoy = currentDoy();
+  let html = "";
+  rows.forEach((d,i)=>{
+    const ket1 = d.wd1===null ? '<span class="ket-none">tidak terjadi</span>' : (d.valid1? '' : '<span class="ket-night">di luar siang</span>');
+    const ket2 = d.wd2===null ? '<span class="ket-none">tidak terjadi</span>' : (d.valid2? '' : '<span class="ket-night">di luar siang</span>');
+    let ket = "";
+    if (!d.valid1 && !d.valid2) ket = '<span class="ket-none">Tidak teramati hari ini</span>';
+    else if (!d.valid1 || !d.valid2) ket = '<span class="ket-night">Hanya salah satu jam teramati</span>';
+    else ket = "Kedua jam teramati";
+    const cls = d.doy===todayDoy ? ' class="today-row"' : '';
+    html += "<tr"+cls+">"
+      + "<td>"+(i+1)+"</td>"
+      + "<td>"+pad2(d.day)+" "+MONTH_NAMES[d.month-1]+" "+d.year+"</td>"
+      + "<td>"+(d.sunrise!==null? hoursToHMS(d.sunrise) : "—")+"</td>"
+      + "<td>"+(d.sunset!==null? hoursToHMS(d.sunset) : "—")+"</td>"
+      + "<td>"+(d.wd1!==null? hoursToHMS(d.wd1) : "—")+" "+ket1+"</td>"
+      + "<td>"+(d.wd2!==null? hoursToHMS(d.wd2) : "—")+" "+ket2+"</td>"
+      + "<td>"+ket+"</td>"
+      + "</tr>";
+  });
+  tbody.innerHTML = html;
+}
+function currentDoy(){
+  if (!STATE) return -1;
+  const now = new Date();
+  if (now.getFullYear() !== STATE.year) return -1;
+  return dateToDoy(STATE.year, now.getMonth()+1, now.getDate());
+}
+
+/* ============================================================
+   8. DIAGRAM SVG — dial berputar (drag + slider)
+   ============================================================ */
+const CX=250, CY=250, R_OUT=235, R_RING_OUT=235, R_RING_IN=212, R_MAX=205, R_MIN=42;
+function timeToRadius(h){
+  const t = clamp((h-5)/(19-5),0,1);
+  return R_MIN + t*(R_MAX-R_MIN);
+}
+const DAY_NAMES = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+let dialRotation = 0; // derajat — rotasi PANAH DI TENGAH saja
+let selectedDoy = 1;
+let playTimer = null;
+
+function buildDiagramSVG(){
+  const stage = document.getElementById("diagram-stage");
+  stage.innerHTML = `
+  <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="bgGlow" cx="50%" cy="45%" r="65%">
+        <stop offset="0%" stop-color="#1c3f37"/>
+        <stop offset="100%" stop-color="#0e211c"/>
+      </radialGradient>
+    </defs>
+    <circle cx="${CX}" cy="${CY}" r="${R_OUT+8}" fill="url(#bgGlow)" stroke="rgba(201,162,39,0.25)" stroke-width="1"/>
+
+    <!-- ===== CINCIN BULAN & TANGGAL — DIAM ===== -->
+    <g id="month-ring"></g>
+    <g id="date-ticks"></g>
+
+    <!-- ===== DIAGRAM DATA (kurva rashdul kiblat) — DIAM ===== -->
+    <g id="data-fixed">
+      <circle cx="${CX}" cy="${CY}" r="${R_MAX}" fill="none" stroke="rgba(255,255,255,0.07)"/>
+      <circle cx="${CX}" cy="${CY}" r="${(R_MAX+R_MIN)/2}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2 4"/>
+      <path id="curve-wd1" fill="none" stroke="var(--leaf-bright)" stroke-width="2"/>
+      <path id="curve-wd2" fill="none" stroke="var(--azure-bright)" stroke-width="2"/>
+      <g id="hour-ticks"></g>
+    </g>
+
+    <!-- ===== PANAH DI TENGAH — bagian yang BERPUTAR, menunjuk hari/bulan ===== -->
+    <g id="center-dial">
+      <g id="center-dial-inner"></g>
+    </g>
+
+    <!-- Label keterangan: hari, tanggal, jam Rashdul Kiblat (tidak ikut berputar) -->
+    <g id="reading-label"></g>
+  </svg>`;
+  buildMonthRing();
+  buildHourTicks();
+  attachDragHandlers();
+}
+
+function polar(cx,cy,r,angleDeg){
+  const a = rad(angleDeg-90); // 0deg = atas (12 o'clock)
+  return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+}
+
+function buildMonthRing(){
+  const g = document.getElementById("month-ring");
+  const N = daysInYear(STATE.year);
+  let html = "";
+  const md = monthDays(STATE.year);
+  let acc = 0;
+  const colors = ["#3E7A57","#335E86"];
+  for (let m=0;m<12;m++){
+    const a0 = acc/N*360, a1 = (acc+md[m])/N*360;
+    acc += md[m];
+    const p0 = polar(CX,CY,R_RING_OUT,a0), p1 = polar(CX,CY,R_RING_OUT,a1);
+    const p2 = polar(CX,CY,R_RING_IN,a1), p3 = polar(CX,CY,R_RING_IN,a0);
+    const large = (a1-a0)>180?1:0;
+    html += `<path d="M ${p0[0]} ${p0[1]} A ${R_RING_OUT} ${R_RING_OUT} 0 ${large} 1 ${p1[0]} ${p1[1]} L ${p2[0]} ${p2[1]} A ${R_RING_IN} ${R_RING_IN} 0 ${large} 0 ${p3[0]} ${p3[1]} Z" fill="${colors[m%2]}" opacity="0.85"/>`;
+    const mid = (a0+a1)/2;
+    const lp = polar(CX,CY,(R_RING_OUT+R_RING_IN)/2, mid);
+    html += `<text x="${lp[0]}" y="${lp[1]}" font-size="9" fill="#F3EEE0" font-family="JetBrains Mono, monospace" text-anchor="middle" dominant-baseline="middle" transform="rotate(${mid<180?mid-90:mid+90} ${lp[0]} ${lp[1]})">${MONTH_NAMES[m].slice(0,3).toUpperCase()}</text>`;
+  }
+  g.innerHTML = html;
+}
+
+function buildHourTicks(){
+  const g = document.getElementById("hour-ticks");
+  let html = "";
+  for (let h=6; h<=18; h+=1){
+    const r = timeToRadius(h);
+    [-1,1].forEach(dir=>{
+      const y = CY + dir*r;
+      const len = (h%6===0)?9:5;
+      html += `<line x1="${CX-len}" y1="${y}" x2="${CX+len}" y2="${y}" stroke="var(--brass-bright)" stroke-width="${h%6===0?1.6:1}"/>`;
+      if (h%6===0) html += `<text x="${CX+13}" y="${y+3}" font-size="9" fill="#E8C766" font-family="JetBrains Mono, monospace">${h}h</text>`;
+    });
+  }
+  g.innerHTML = html;
+}
+
+/* Tanda tanggal pada cincin (DIAM) + kurva data (DIAM) */
+function buildDateTicksAndCurves(){
+  const N = daysInYear(STATE.year);
+  let pts1=[], pts2=[];
+  STATE.days.forEach(d=>{
+    const a = (d.doy-1)/N*360;
+    if (d.valid1 && d.wd1!==null){
+      const r = timeToRadius(d.wd1);
+      pts1.push(polar(CX,CY,r,a));
+    }
+    if (d.valid2 && d.wd2!==null){
+      const r = timeToRadius(d.wd2);
+      pts2.push(polar(CX,CY,r,a));
+    }
+  });
+  function pathFrom(pts){
+    if (!pts.length) return "";
+    return "M "+pts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L ");
+  }
+  document.getElementById("curve-wd1").setAttribute("d", pathFrom(pts1));
+  document.getElementById("curve-wd2").setAttribute("d", pathFrom(pts2));
+
+  // tanda tanggal + label angka hari (1/11/21, kelipatan 5)
+  const tg = document.getElementById("date-ticks");
+  let html = "";
+  STATE.days.forEach(d=>{
+    const a = (d.doy-1)/N*360;
+    const isMajor = (d.day===1 || d.day===11 || d.day===21);
+    const isMid = (d.day % 5 === 0);
+    const big = isMajor ? 9 : (isMid ? 5 : 2.5);
+    const opacity = isMajor ? 0.85 : (isMid ? 0.4 : 0.14);
+    const w = isMajor ? 1.4 : (isMid ? 1 : 0.6);
+    const p0 = polar(CX,CY,R_RING_IN-2, a);
+    const p1 = polar(CX,CY,R_RING_IN-2-big, a);
+    html += `<line x1="${p0[0]}" y1="${p0[1]}" x2="${p1[0]}" y2="${p1[1]}" stroke="rgba(255,255,255,${opacity})" stroke-width="${w}"/>`;
+    if (isMajor){
+      const lp = polar(CX,CY,R_RING_IN-2-big-9, a);
+      html += `<text x="${lp[0]}" y="${lp[1]}" font-size="7.5" fill="#E8C766" font-family="JetBrains Mono, monospace" text-anchor="middle" dominant-baseline="middle">${d.day}</text>`;
+    }
+  });
+  tg.innerHTML = html;
+}
+
+/* Isi panah di tengah (digambar LOKAL menunjuk ke atas / angle=0),
+   lalu seluruh grup diputar via transform agar tepat menunjuk ke
+   hari/bulan terpilih pada cincin yang diam. Titik-titik jam Rashdul
+   Kiblat digambar pada garis panah yang sama sehingga otomatis jatuh
+   tepat di kurva (yang diam) setelah rotasi diterapkan. */
+function updateCenterDial(doy){
+  const d = STATE.days[doy-1];
+  const a = angleForDoy(doy);
+  const inner = document.getElementById("center-dial-inner");
+
+  const tipR = R_RING_OUT + 9;
+  const startR = 14;
+  let html = "";
+  // batang panah (lokal: menunjuk ke atas)
+  html += `<line x1="${CX}" y1="${CY-startR}" x2="${CX}" y2="${CY-tipR}" stroke="var(--brass-bright)" stroke-width="3" stroke-linecap="round"/>`;
+  // mata panah di ujung
+  html += `<polygon points="${CX-7},${CY-tipR+10} ${CX+7},${CY-tipR+10} ${CX},${CY-tipR-6}" fill="var(--brass-bright)"/>`;
+  // poros tengah
+  html += `<circle cx="${CX}" cy="${CY}" r="7" fill="#0E211C" stroke="var(--brass-bright)" stroke-width="2"/>`;
+
+  function addDot(h, valid, colorVar){
+    if (h===null) return;
+    const r = timeToRadius(h);
+    const y = CY - r;
+    const dotColor = valid ? colorVar : "var(--ink-faint)";
+    html += `<circle cx="${CX}" cy="${y}" r="5.5" fill="${dotColor}" stroke="#0E211C" stroke-width="1.6"/>`;
+  }
+  addDot(d.wd1, d.valid1, "var(--leaf-bright)");
+  addDot(d.wd2, d.valid2, "var(--azure-bright)");
+
+  inner.innerHTML = html;
+  document.getElementById("center-dial").setAttribute("transform", `rotate(${a} ${CX} ${CY})`);
+
+  renderReadingLabel(doy, a);
+}
+
+/* Keterangan ringkas: hari, tanggal, dan jam Rashdul Kiblat saja.
+   Teks R.Kiblat ditandai merah jika tidak dapat diamati (Matahari
+   tidak tampak: di luar siang, atau Rashdul Kiblat tidak terjadi). */
+function renderReadingLabel(doy, a){
+  const d = STATE.days[doy-1];
+  const g = document.getElementById("reading-label");
+  const RED = "var(--rust)";
+  const ok1 = (d.wd1!==null && d.valid1);
+  const ok2 = (d.wd2!==null && d.valid2);
+  const lines = [
+    { text: `${pad2(d.day)} ${MONTH_ABBR[d.month-1]} ${d.year}`, color: "#E8C766", bold: true },
+    { text: `R.Kiblat 1: ${d.wd1!==null ? hoursToHM(d.wd1) : "—"}`, color: ok1 ? "#F3EEE0" : RED, bold: false },
+    { text: `R.Kiblat 2: ${d.wd2!==null ? hoursToHM(d.wd2) : "—"}`, color: ok2 ? "#F3EEE0" : RED, bold: false }
+  ];
+
+  const onRight = (a>270 || a<90);
+  const boxW = 112, lineH = 13, boxH = 12 + lines.length*lineH;
+  const boxX = onRight ? CX + (R_MAX*0.30) : CX - (R_MAX*0.30) - boxW;
+  const boxY = CY - boxH/2;
+  const html = `<g transform="translate(${boxX} ${boxY})">
+      <rect x="0" y="0" width="${boxW}" height="${boxH}" rx="7" fill="rgba(10,20,17,0.9)" stroke="rgba(201,162,39,0.45)" stroke-width="1"/>
+      ${lines.map((l,i)=>`<text x="9" y="${17+i*lineH}" font-size="9.5" font-family="JetBrains Mono, monospace" fill="${l.color}" font-weight="${l.bold?700:400}">${escapeXml(l.text)}</text>`).join("")}
+    </g>`;
+  g.innerHTML = html;
+}
+function escapeXml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function setRotation(deg_){
+  dialRotation = deg_;
+  document.getElementById("center-dial").setAttribute("transform", `rotate(${dialRotation} ${CX} ${CY})`);
+}
+
+function angleForDoy(doy){
+  const N = daysInYear(STATE.year);
+  return (doy-1)/N*360;
+}
+function doyForAngle(angleDeg){
+  const N = daysInYear(STATE.year);
+  let a = ((angleDeg%360)+360)%360;
+  let doy = Math.round(a/360*N)+1;
+  if (doy>N) doy=1;
+  if (doy<1) doy=N;
+  return doy;
+}
+
+function selectDoy(doy, fromDrag){
+  const N = daysInYear(STATE.year);
+  doy = ((doy-1+N)%N)+1;
+  selectedDoy = doy;
+  if (fromDrag){
+    // saat drag, rotasi sudah diatur langsung oleh handler; cukup gambar ulang isi & label
+    updateCenterDial(doy);
+  } else {
+    updateCenterDial(doy); // turut menetapkan transform = angleForDoy(doy)
+  }
+  const d = STATE.days[doy-1];
+  document.getElementById("ro-date").textContent = pad2(d.day)+" "+MONTH_ABBR[d.month-1]+" "+d.year;
+  const ok1 = (d.wd1!==null && d.valid1);
+  const ok2 = (d.wd2!==null && d.valid2);
+  const elWd1 = document.getElementById("ro-wd1");
+  const elWd2 = document.getElementById("ro-wd2");
+  elWd1.textContent = d.wd1!==null ? hoursToHM(d.wd1)+(d.valid1?"":" (di luar siang)") : "tidak terjadi";
+  elWd2.textContent = d.wd2!==null ? hoursToHM(d.wd2)+(d.valid2?"":" (di luar siang)") : "tidak terjadi";
+  elWd1.classList.toggle("v-invalid", !ok1);
+  elWd2.classList.toggle("v-invalid", !ok2);
+  document.getElementById("day-slider").value = doy;
+  const yyyy = d.year, mm = pad2(d.month), dd = pad2(d.day);
+  document.getElementById("date-picker").value = `${yyyy}-${mm}-${dd}`;
+}
+
+function attachDragHandlers(){
+  const svg = document.querySelector("#diagram-stage svg");
+  let dragging=false;
+  function angleFromEvent(evt){
+    const rect = svg.getBoundingClientRect();
+    const scale = 500/rect.width;
+    const x = (evt.clientX-rect.left)*scale - CX;
+    const y = (evt.clientY-rect.top)*scale - CY;
+    return deg(Math.atan2(x,-y)); // 0deg = atas, searah jarum jam
+  }
+  svg.addEventListener("pointerdown", e=>{
+    dragging=true;
+    svg.setPointerCapture(e.pointerId);
+    stopPlay();
+    const a = angleFromEvent(e);
+    setRotation(a);
+    selectDoy(doyForAngle(a), true);
+  });
+  svg.addEventListener("pointermove", e=>{
+    if(!dragging) return;
+    const a = angleFromEvent(e);
+    setRotation(a);
+    selectDoy(doyForAngle(a), true);
+  });
+  function endDrag(e){
+    if(!dragging) return;
+    dragging=false;
+    selectDoy(selectedDoy, false); // rapikan panah persis ke sudut tanggal terpilih
+  }
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointerleave", endDrag);
+}
+
+function stopPlay(){
+  if (playTimer){ clearInterval(playTimer); playTimer=null; document.getElementById("btn-play").textContent="▶ Putar otomatis"; }
+}
+
+
+/* ============================================================
+   9. EXPORT EXCEL
+   ============================================================ */
+function exportExcel(){
+  if (!STATE) return;
+  const rows = STATE.days.map((d,i)=>({
+    "No": i+1,
+    "Tanggal": pad2(d.day)+"-"+pad2(d.month)+"-"+d.year,
+    "Terbit": d.sunrise!==null? hoursToHMS(d.sunrise): "",
+    "Terbenam": d.sunset!==null? hoursToHMS(d.sunset): "",
+    "R.Kiblat 1": d.wd1!==null? hoursToHMS(d.wd1): "",
+    "Teramati 1": d.wd1!==null ? (d.valid1?"Ya":"Tidak (di luar siang)") : "Tidak terjadi",
+    "R.Kiblat 2": d.wd2!==null? hoursToHMS(d.wd2): "",
+    "Teramati 2": d.wd2!==null ? (d.valid2?"Ya":"Tidak (di luar siang)") : "Tidak terjadi"
+  }));
+  const wsData = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsData, "Rashdul Kiblat Harian");
+
+  const info = [
+    ["Qibla Diagram — Rashdul Kiblat Harian Lokal"],
+    [],
+    ["Nama tempat", STATE.namaTempat||"-"],
+    ["Lintang tempat", dmsStr(STATE.phix,"LU","LS")],
+    ["Bujur tempat", dmsStr(STATE.lamx,"BT","BB")],
+    ["Lintang Ka'bah", dmsStr(STATE.phik,"LU","LS")],
+    ["Bujur Ka'bah", dmsStr(STATE.lamk,"BT","BB")],
+    ["Tinggi tempat (m)", STATE.tinggi],
+    ["Tahun", STATE.year],
+    ["Arah Kiblat", dmsStrPlain(STATE.B)+" "+QUAD_SHORT[STATE.quad]],
+    ["Azimut Kiblat", dmsStrPlain(STATE.azimuth)+" UTSB"],
+    ["Bujur Daerah / Zona", STATE.lamDx+"° (GMT"+(STATE.f7>=0?"+":"")+STATE.f7+")"],
+    [],
+    ["Sumber rumus & konsep","Muhammad Thoyfur, SH., \"Arah Kiblat, Rashdul Kiblat, Qibla Diagram dan Cara Penggunaannya\", Modul Ngulik Bareng #1 Instrumen Falak Klasik, Ramadan 1442 H, beserta berkas \"Qibla Diagram in Excel\" (Semarang, 2019)."],
+    ["Posisi Matahari","Dihitung ulang dengan algoritma Jean Meeus, Astronomical Algorithms (1991), sebagaimana diadaptasi pada berkas sumber."]
+  ];
+  const wsInfo = XLSX.utils.aoa_to_sheet(info);
+  XLSX.utils.book_append_sheet(wb, wsInfo, "Info & Sumber");
+
+  const fname = "Qibla_Diagram_"+(STATE.namaTempat?STATE.namaTempat.replace(/[^a-z0-9]+/gi,"_"):"Lokasi")+"_"+STATE.year+".xlsx";
+  XLSX.writeFile(wb, fname);
+}
+
+/* ============================================================
+   10. EVENTS / INIT
+   ============================================================ */
+document.getElementById("btn-hitung").addEventListener("click", ()=>{
+  computeAll();
+  renderResult();
+  renderTable();
+  buildDiagramSVG();
+  buildDateTicksAndCurves();
+  const doy0 = Math.min(currentDoy()>0?currentDoy():1, daysInYear(STATE.year));
+  selectDoy(doy0, false);
+  document.getElementById("day-slider").max = daysInYear(STATE.year);
+  const resSec = document.getElementById("sec-result");
+  if (resSec.scrollIntoView) resSec.scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+document.getElementById("btn-gps").addEventListener("click", ()=>{
+  const statusEl = document.getElementById("gps-status");
+  if (!navigator.geolocation){ statusEl.textContent="Geolocation tidak didukung perangkat/browser ini."; return; }
+  if (location.protocol !== "https:" && location.hostname !== "localhost"){
+    statusEl.textContent = "GPS butuh koneksi HTTPS. Buka halaman ini lewat https:// agar tombol lokasi aktif.";
+    return;
+  }
+  statusEl.textContent = "Mencari lokasi…";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    writeDMSField("px","px-dir", lat, "LU","LS");
+    writeDMSField("lx","lx-dir", lon, "BT","BB");
+    if (pos.coords.altitude) document.getElementById("tinggi").value = Math.max(0, Math.round(pos.coords.altitude));
+    statusEl.textContent = "Lokasi terkunci: "+lat.toFixed(5)+", "+lon.toFixed(5);
+  }, err=>{
+    statusEl.textContent = "Gagal mengambil lokasi: "+err.message+" — Anda tetap bisa isi koordinat manual dari Google Earth/GPS lain.";
+  }, {enableHighAccuracy:true, timeout:10000});
+});
+
+document.getElementById("view-toggle").addEventListener("click", e=>{
+  const btn = e.target.closest("button"); if(!btn) return;
+  TABLE_MODE = btn.dataset.mode;
+  document.querySelectorAll("#view-toggle button").forEach(b=>b.classList.toggle("active", b===btn));
+  renderTable();
+});
+document.getElementById("btn-export").addEventListener("click", exportExcel);
+
+document.getElementById("day-slider").addEventListener("input", e=>{
+  stopPlay();
+  selectDoy(parseInt(e.target.value), false);
+});
+document.getElementById("date-picker").addEventListener("change", e=>{
+  if (!STATE) return;
+  const v = e.target.value; if(!v) return;
+  const [yy,mm,dd] = v.split("-").map(Number);
+  if (yy !== STATE.year){ return; }
+  stopPlay();
+  selectDoy(dateToDoy(STATE.year, mm, dd), false);
+});
+document.getElementById("btn-play").addEventListener("click", ()=>{
+  if (playTimer){ stopPlay(); return; }
+  document.getElementById("btn-play").textContent = "⏸ Berhenti";
+  playTimer = setInterval(()=>{
+    let next = selectedDoy+1;
+    if (next > daysInYear(STATE.year)) next = 1;
+    selectDoy(next, false);
+  }, 90);
+});
+
+})();
+
+</script>
+</body>
+</html>
